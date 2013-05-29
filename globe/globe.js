@@ -152,28 +152,19 @@ DAT.Globe = function(container, colorFn) {
     }
 
     point = new THREE.Mesh(geometry);
-
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.autoClear = false;
     renderer.setClearColorHex(0x000000, 0.0);
     renderer.setSize(w, h);
-
     renderer.domElement.style.position = 'absolute';
-
     container.appendChild(renderer.domElement);
-
     container.addEventListener('mousedown', onMouseDown, false);
-
     container.addEventListener('mousewheel', onMouseWheel, false);
-
     document.addEventListener('keydown', onDocumentKeyDown, false);
-
     window.addEventListener('resize', onWindowResize, false);
-
     container.addEventListener('mouseover', function() {
       overRenderer = true;
     }, false);
-
     container.addEventListener('mouseout', function() {
       overRenderer = false;
     }, false);
@@ -216,6 +207,7 @@ DAT.Globe = function(container, colorFn) {
       opts.name = opts.name || 'morphTarget'+this._morphTargetId;
     }
     var subgeo = new THREE.Geometry();
+    debugger;
     for (i = 0; i < data.length; i += step) {
       lat = data[i];
       lng = data[i + 1];
@@ -282,6 +274,70 @@ DAT.Globe = function(container, colorFn) {
 
     GeometryUtils.merge(subgeo, point);
   }
+
+  
+
+  function animate() {
+    requestAnimationFrame(animate);
+    render();
+  }
+
+  function render() {
+    zoom(curZoomSpeed);
+
+    rotation.x += (target.x - rotation.x) * 0.1;
+    rotation.y += (target.y - rotation.y) * 0.1;
+    distance += (distanceTarget - distance) * 0.3;
+
+    camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
+    camera.position.y = distance * Math.sin(rotation.y);
+    camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
+
+    vector.copy(camera.position);
+
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneAtmosphere, camera);
+  }
+
+  init();
+  this.animate = animate;
+
+
+  this.__defineGetter__('time', function() {
+    return this._time || 0;
+  });
+
+  this.__defineSetter__('time', function(t) {
+    var validMorphs = [];
+    var morphDict = this.points.morphTargetDictionary;
+    for(var k in morphDict) {
+      if(k.indexOf('morphPadding') < 0) {
+        validMorphs.push(morphDict[k]);
+      }
+    }
+    validMorphs.sort();
+    var l = validMorphs.length-1;
+    var scaledt = t*l+1;
+    var index = Math.floor(scaledt);
+    for (i=0;i<validMorphs.length;i++) {
+      this.points.morphTargetInfluences[validMorphs[i]] = 0;
+    }
+    var lastIndex = index - 1;
+    var leftover = scaledt - index;
+    if (lastIndex >= 0) {
+      this.points.morphTargetInfluences[lastIndex] = 1 - leftover;
+    }
+    this.points.morphTargetInfluences[index] = leftover;
+    this._time = t;
+  });
+
+  this.addData = addData;
+  this.createPoints = createPoints;
+  this.renderer = renderer;
+  this.scene = scene;
+
+  //*********MOUSE HANDLER STUFF******************
 
   function onMouseDown(event) {
     event.preventDefault();
@@ -358,66 +414,6 @@ DAT.Globe = function(container, colorFn) {
     distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
     distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
   }
-
-  function animate() {
-    requestAnimationFrame(animate);
-    render();
-  }
-
-  function render() {
-    zoom(curZoomSpeed);
-
-    rotation.x += (target.x - rotation.x) * 0.1;
-    rotation.y += (target.y - rotation.y) * 0.1;
-    distance += (distanceTarget - distance) * 0.3;
-
-    camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
-    camera.position.y = distance * Math.sin(rotation.y);
-    camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
-
-    vector.copy(camera.position);
-
-    renderer.clear();
-    renderer.render(scene, camera);
-    renderer.render(sceneAtmosphere, camera);
-  }
-
-  init();
-  this.animate = animate;
-
-
-  this.__defineGetter__('time', function() {
-    return this._time || 0;
-  });
-
-  this.__defineSetter__('time', function(t) {
-    var validMorphs = [];
-    var morphDict = this.points.morphTargetDictionary;
-    for(var k in morphDict) {
-      if(k.indexOf('morphPadding') < 0) {
-        validMorphs.push(morphDict[k]);
-      }
-    }
-    validMorphs.sort();
-    var l = validMorphs.length-1;
-    var scaledt = t*l+1;
-    var index = Math.floor(scaledt);
-    for (i=0;i<validMorphs.length;i++) {
-      this.points.morphTargetInfluences[validMorphs[i]] = 0;
-    }
-    var lastIndex = index - 1;
-    var leftover = scaledt - index;
-    if (lastIndex >= 0) {
-      this.points.morphTargetInfluences[lastIndex] = 1 - leftover;
-    }
-    this.points.morphTargetInfluences[index] = leftover;
-    this._time = t;
-  });
-
-  this.addData = addData;
-  this.createPoints = createPoints;
-  this.renderer = renderer;
-  this.scene = scene;
 
   return this;
 
