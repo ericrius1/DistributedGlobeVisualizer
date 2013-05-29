@@ -25,6 +25,7 @@
   <script type="text/javascript" src="/globe/third-party/Three/RequestAnimationFrame.js"></script>
   <script type="text/javascript" src="/globe/third-party/Three/Detector.js"></script>
   <script type="text/javascript" src="/globe/globe.js"></script>
+  <script type="text/javascript" src="/globe/JobEmitter.js"></script>
   <script type="text/javascript">
 
     if(!Detector.webgl){
@@ -46,8 +47,6 @@
             return;
           }
           var views = document.getElementsByClassName('who');
-          //sets the view active to the one user just clicked on
-          //and the other views to inactive
           for(i=0; i<views.length; i++) {
             views[i].setAttribute('class','who');
           }
@@ -70,7 +69,6 @@
             var data = JSON.parse(xhr.responseText);
             window.data = data;
             globe.addData(data[1], {format: 'magnitude', name: data[0]});
-            
             globe.createPoints();
             //setwho(globe,0)();
             globe.animate();
@@ -78,6 +76,8 @@
         }
       };
       xhr.send(null);
+
+    
     }
 
   </script>

@@ -15,7 +15,6 @@ var DAT = DAT || {};
 
 DAT.Globe = function(container) {
 
-
   Shaders = {
     'earth': {
       uniforms: {
@@ -62,24 +61,7 @@ DAT.Globe = function(container) {
           'gl_FragColor = vec4( 0.33, 0.11, 0.44, 1.0 ) * intensity;',
           '}'
       ].join('\n')
-    },
-    'contributor': {
-      uniforms: {},
-      vertexShader: [
-          'varying vec3 vNormal;',
-          'void main() {',
-          'vNormal = normalize( normalMatrix * normal );',
-          'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-          '}'
-      ].join('\n'),
-      fragmentShader: [
-          'varying vec3 vNormal;',
-          'void main() {',
-          'float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );',
-          'gl_FragColor = vec4( 0.33, 0.11, 0.44, 1.0 ) * intensity;',
-          '}'
-      ].join('\n')
-    },
+    }
   };
 
   var camera, scene, material, sceneAtmosphere, renderer, w, h;
@@ -90,6 +72,8 @@ DAT.Globe = function(container) {
   var friendColor = 0x0000ff;
   var everyoneColor = 0x00ff00;
   var highlightColor = 0xFFFFFF;
+
+  var frameCounter = 0;
 
   var imgDir = '/globe/';
 
@@ -318,6 +302,9 @@ DAT.Globe = function(container) {
     function animate() {
       requestAnimationFrame(animate);
       render();
+      if(frameCounter++ % 60 === 0){
+        updateJobEmitters();
+      }
     }
 
     function render() {
@@ -339,6 +326,8 @@ DAT.Globe = function(container) {
     }
 
     init();
+
+    //**** PUBLIC METHODS *******
     this.animate = animate;
 
     this.addData = addData;
@@ -427,6 +416,10 @@ DAT.Globe = function(container) {
       distanceTarget -= delta;
       distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
       distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
+    }
+
+    function updateJobEmitters() {
+      console.log("shnur");
     }
 
     return this;
