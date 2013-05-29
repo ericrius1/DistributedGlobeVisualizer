@@ -73,9 +73,12 @@ DAT.Globe = function(container) {
   var everyoneColor = 0x00ff00;
   var highlightColor = 0xFFFFFF;
 
+  var jobEmitters = [];
+
   var frameCounter = 1;
 
   var imgDir = '/globe/';
+
 
   var curZoomSpeed = 0;
   var zoomSpeed = 50;
@@ -204,7 +207,7 @@ DAT.Globe = function(container) {
     console.log(opts.format);
     if (opts.format === 'magnitude') {
       step = 3;
-     
+
     } else {
       throw ('error: format not supported: ' + opts.format);
     }
@@ -218,19 +221,19 @@ DAT.Globe = function(container) {
       i === 0 ? relationship = 'me' : i < data.length / 4 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
-      size = .05;
+      size = data[i+2];
       size = size * 200;
       switch (relationship) {
         case 'friend':
-          addPoint(lat, lng, size, friendGeometry);
+          addPoint(lat, lng, size, friendGeometry, relationship);
           break;
         case 'everyone':
-          addPoint(lat, lng, size,  everyoneElseGeometry);
+          addPoint(lat, lng, size, everyoneElseGeometry, relationship);
           break;
         case 'me':
-          addPoint(lat, lng, size,  myGeometry);
+          addPoint(lat, lng, size, myGeometry, relationship);
       }
-      
+
     }
     this._everyoneElseGeometry = everyoneElseGeometry;
     this._friendGeometry = friendGeometry;
@@ -239,19 +242,19 @@ DAT.Globe = function(container) {
   };
 
   function updatePoints(view) {
-    if(view === 'whoEveryone'){
+    if (view === 'whoEveryone') {
       this.everyoneElsePoints.materials[0].color.setHex(this.highlightColor);
       this.friendPoints.materials[0].color.setHex(this.highlightColor);
       this.myPoints.materials[0].color.setHex(this.highlightColor);
     }
 
-    if(view === 'whoMe'){
+    if (view === 'whoMe') {
       this.myPoints.materials[0].color.setHex(this.highlightColor);
       this.everyoneElsePoints.materials[0].color.setHex(this.everyoneColor);
       this.friendPoints.materials[0].color.setHex(this.friendColor);
     }
 
-    if(view === 'whoFriends'){
+    if (view === 'whoFriends') {
       this.friendPoints.materials[0].color.setHex(this.highlightColor);
       this.myPoints.materials[0].color.setHex(this.myColor);
       this.everyoneElsePoints.materials[0].color.setHex(this.everyoneColor);
@@ -264,164 +267,170 @@ DAT.Globe = function(container) {
       this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, new THREE.MeshBasicMaterial({
         color: this.everyoneColor
       }));
-      }
-      if (this._friendGeometry !== undefined) {
-        this.friendPoints = new THREE.Mesh(this._friendGeometry, new THREE.MeshBasicMaterial({
-          color: this.friendColor
-        }));
-      }
-      if (this._myGeometry !== undefined) {
-        this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
-          color: this.myColor
-        }));
-      }
-
-      scene.addObject(this.everyoneElsePoints);
-      scene.addObject(this.friendPoints);
-      scene.addObject(this.myPoints);
+    }
+    if (this._friendGeometry !== undefined) {
+      this.friendPoints = new THREE.Mesh(this._friendGeometry, new THREE.MeshBasicMaterial({
+        color: this.friendColor
+      }));
+    }
+    if (this._myGeometry !== undefined) {
+      this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
+        color: this.myColor
+      }));
     }
 
-    function addPoint(lat, lng, size, subgeo) {
-      var phi = (90 - lat) * Math.PI / 180;
-      var theta = (180 - lng) * Math.PI / 180;
+    scene.addObject(this.everyoneElsePoints);
+    scene.addObject(this.friendPoints);
+    scene.addObject(this.myPoints);
+  }
 
-      point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
-      point.position.y = 200 * Math.cos(phi);
-      point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
+  function addPoint(lat, lng, size, subgeo, relationship) {
+    var phi = (90 - lat) * Math.PI / 180;
+    var theta = (180 - lng) * Math.PI / 180;
 
-      point.lookAt(mesh.position);
+    point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
+    point.position.y = 200 * Math.cos(phi);
+    point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
 
-      point.scale.z = -size;
-      point.updateMatrix();
-     
-      GeometryUtils.merge(subgeo, point);
+    point.lookAt(mesh.position);
+
+    point.scale.z = -size;
+    point.updateMatrix();
+
+    GeometryUtils.merge(subgeo, point);
+
+    //Here we need to add an emitter to this point
+    jobEmitters.push(new DAT.JobEmitter(globe, point.position, relationship));
+
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    render();
+    if (frameCounter++ % 60 === 0) {
+      updateJobEmitters();
+      frameCounter = 1;
+
     }
+  }
 
-    function animate() {
-      requestAnimationFrame(animate);
-      render();
-      if(frameCounter++ % 60 === 0){
-        updateJobEmitters();
-        frameCounter= 1;
-        
-      }
+  function render() {
+    zoom(curZoomSpeed);
+
+    rotation.x += (target.x - rotation.x) * 0.1;
+    rotation.y += (target.y - rotation.y) * 0.1;
+    distance += (distanceTarget - distance) * 0.3;
+
+    camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
+    camera.position.y = distance * Math.sin(rotation.y);
+    camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
+
+    vector.copy(camera.position);
+
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneAtmosphere, camera);
+  }
+
+  init();
+
+  //**** PUBLIC METHODS *********************
+
+  this.animate = animate;
+
+  this.addData = addData;
+  this.createPoints = createPoints;
+  this.updatePoints = updatePoints;
+  this.renderer = renderer;
+  this.scene = scene;
+  this.camera = camera;
+  this.myColor = myColor;
+  this.friendColor = friendColor;
+  this.everyoneColor = everyoneColor;
+  this.highlightColor = highlightColor;
+
+  //*********MOUSE HANDLER STUFF******************
+
+  function onMouseDown(event) {
+    event.preventDefault();
+
+    container.addEventListener('mousemove', onMouseMove, false);
+    container.addEventListener('mouseup', onMouseUp, false);
+    container.addEventListener('mouseout', onMouseOut, false);
+
+    mouseOnDown.x = -event.clientX;
+    mouseOnDown.y = event.clientY;
+
+    targetOnDown.x = target.x;
+    targetOnDown.y = target.y;
+
+    container.style.cursor = 'move';
+  }
+
+  function onMouseMove(event) {
+    mouse.x = -event.clientX;
+    mouse.y = event.clientY;
+
+    var zoomDamp = distance / 1000;
+
+    target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
+    target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
+
+    target.y = target.y > PI_HALF ? PI_HALF : target.y;
+    target.y = target.y < -PI_HALF ? -PI_HALF : target.y;
+  }
+
+  function onMouseUp(event) {
+    container.removeEventListener('mousemove', onMouseMove, false);
+    container.removeEventListener('mouseup', onMouseUp, false);
+    container.removeEventListener('mouseout', onMouseOut, false);
+    container.style.cursor = 'auto';
+  }
+
+  function onMouseOut(event) {
+    container.removeEventListener('mousemove', onMouseMove, false);
+    container.removeEventListener('mouseup', onMouseUp, false);
+    container.removeEventListener('mouseout', onMouseOut, false);
+  }
+
+  function onMouseWheel(event) {
+    event.preventDefault();
+    if (overRenderer) {
+      zoom(event.wheelDeltaY * 0.3);
     }
+    return false;
+  }
 
-    function render() {
-      zoom(curZoomSpeed);
-
-      rotation.x += (target.x - rotation.x) * 0.1;
-      rotation.y += (target.y - rotation.y) * 0.1;
-      distance += (distanceTarget - distance) * 0.3;
-
-      camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
-      camera.position.y = distance * Math.sin(rotation.y);
-      camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
-
-      vector.copy(camera.position);
-
-      renderer.clear();
-      renderer.render(scene, camera);
-      renderer.render(sceneAtmosphere, camera);
+  function onDocumentKeyDown(event) {
+    switch (event.keyCode) {
+      case 38:
+        zoom(100);
+        event.preventDefault();
+        break;
+      case 40:
+        zoom(-100);
+        event.preventDefault();
+        break;
     }
+  }
 
-    init();
+  function onWindowResize(event) {
+    console.log('resize');
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
 
-    //**** PUBLIC METHODS *******
-    this.animate = animate;
+  function zoom(delta) {
+    distanceTarget -= delta;
+    distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
+    distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
+  }
 
-    this.addData = addData;
-    this.createPoints = createPoints;
-    this.updatePoints = updatePoints;
-    this.renderer = renderer;
-    this.scene = scene;
-    this.myColor = myColor;
-    this.friendColor = friendColor;
-    this.everyoneColor = everyoneColor;
-    this.highlightColor = highlightColor;
+  function updateJobEmitters() {
+    console.log("shnur");
+  }
 
-    //*********MOUSE HANDLER STUFF******************
+  return this;
 
-    function onMouseDown(event) {
-      event.preventDefault();
-
-      container.addEventListener('mousemove', onMouseMove, false);
-      container.addEventListener('mouseup', onMouseUp, false);
-      container.addEventListener('mouseout', onMouseOut, false);
-
-      mouseOnDown.x = -event.clientX;
-      mouseOnDown.y = event.clientY;
-
-      targetOnDown.x = target.x;
-      targetOnDown.y = target.y;
-
-      container.style.cursor = 'move';
-    }
-
-    function onMouseMove(event) {
-      mouse.x = -event.clientX;
-      mouse.y = event.clientY;
-
-      var zoomDamp = distance / 1000;
-
-      target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
-      target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
-
-      target.y = target.y > PI_HALF ? PI_HALF : target.y;
-      target.y = target.y < -PI_HALF ? -PI_HALF : target.y;
-    }
-
-    function onMouseUp(event) {
-      container.removeEventListener('mousemove', onMouseMove, false);
-      container.removeEventListener('mouseup', onMouseUp, false);
-      container.removeEventListener('mouseout', onMouseOut, false);
-      container.style.cursor = 'auto';
-    }
-
-    function onMouseOut(event) {
-      container.removeEventListener('mousemove', onMouseMove, false);
-      container.removeEventListener('mouseup', onMouseUp, false);
-      container.removeEventListener('mouseout', onMouseOut, false);
-    }
-
-    function onMouseWheel(event) {
-      event.preventDefault();
-      if (overRenderer) {
-        zoom(event.wheelDeltaY * 0.3);
-      }
-      return false;
-    }
-
-    function onDocumentKeyDown(event) {
-      switch (event.keyCode) {
-        case 38:
-          zoom(100);
-          event.preventDefault();
-          break;
-        case 40:
-          zoom(-100);
-          event.preventDefault();
-          break;
-      }
-    }
-
-    function onWindowResize(event) {
-      console.log('resize');
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function zoom(delta) {
-      distanceTarget -= delta;
-      distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
-      distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
-    }
-
-    function updateJobEmitters() {
-      console.log("shnur");
-    }
-
-    return this;
-
-  };
+};
