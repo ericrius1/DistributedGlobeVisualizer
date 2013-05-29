@@ -240,7 +240,7 @@ DAT.Globe = function(container) {
       throw ('error: format not supported: ' + opts.format);
     }
 
-    var subgeo = new THREE.Geometry();
+    var everyoneElseGeometry = new THREE.Geometry();
     for (i = 0; i < data.length; i += step) {
       //hack to stimulate friends or everyone
       var relationship = '';
@@ -250,9 +250,9 @@ DAT.Globe = function(container) {
       color = colorFnWrapper(data, relationship);
       size = data[i + 2];
       size = size * 200;
-      addPoint(lat, lng, size, color, subgeo);
+      addPoint(lat, lng, size, color, everyoneElseGeometry);
     }
-    this._baseGeometry = subgeo;
+    this._baseGeometry = everyoneElseGeometry;
 
   };
 
@@ -267,18 +267,12 @@ DAT.Globe = function(container) {
         fragmentShader: shader.fragmentShader
       });
 
-      debugger;
       this.points.materials[0] = material;
-
-
     }
-
   }
 
   function createPoints() {
     if (this._baseGeometry !== undefined) {
-
-
       this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
         color: 0xffffff,
         vertexColors: THREE.FaceColors,
