@@ -267,6 +267,9 @@ DAT.Globe = function(container) {
         fragmentShader: shader.fragmentShader
       });
 
+      debugger;
+      this.points.materials[0] = material;
+
 
     }
 
