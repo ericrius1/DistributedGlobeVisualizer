@@ -100,6 +100,9 @@ DAT.Globe = function(container) {
   var vector, mesh, atmosphere, point;
 
   var overRenderer;
+  var userColor = 0xff00ff;
+  var friendColor = 0x0000ff;
+  var everyoneColor = 0x00ff00;
 
   var imgDir = '/globe/';
 
@@ -271,182 +274,168 @@ DAT.Globe = function(container) {
   };
 
   function updatePoints(view) {
-    shader = Shaders['contributor'];
-    uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+    debugger;
+    var c = new THREE.Color();
+    c.setRGB(1, 0, 1);
+    this._friendGeometry.faces.color = c;
 
-    var material = new THREE.MeshShaderMaterial({
-      uniforms: uniforms,
-      vertexShader: shader.vertexShader,
-      fragmentShader: shader.fragmentShader
-    });
-    if (view === 'whoMe') {
-      this.myPoints.materials[0] = material;
-      material.needsUpdate = true;
-      this.friendPoints.materials[0] = this.nonActiveMaterial;
-    }
-    if (view === 'whoFriends') {
-      this.friendPoints.materials[0] = material;
-      material.needsUpdate = true;
-    }
-    if (view === 'whoEveryone') {
-      this.everyoneElsePoints.materials[0] = material;
-      this.friendPoints.materials[0] = material;
-      this.myPoints.materials[0] = material;
-      material.needsUpdate = true;
-    }
   };
 
   function createPoints() {
-    this.nonActiveMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      vertexColors: THREE.FaceColors,
-      morphTargets: false
-    });
     if (this._everyoneElseGeometry !== undefined) {
-      this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, this.nonActiveMaterial );
+      this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, new THREE.MeshBasicMaterial({
+        color: this.everyoneColor
+      }));
+      }
+      if (this._friendGeometry !== undefined) {
+        this.friendPoints = new THREE.Mesh(this._friendGeometry, new THREE.MeshBasicMaterial({
+          color: this.friendColor
+        }));
+      }
+      if (this._myGeometry !== undefined) {
+        this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
+          color: this.userColor
+        }));
+      }
+
+      scene.addObject(this.everyoneElsePoints);
+      scene.addObject(this.friendPoints);
+      scene.addObject(this.myPoints);
     }
-    if (this._friendGeometry !== undefined) {
-      this.friendPoints = new THREE.Mesh(this._friendGeometry, this.nonActiveMaterial);
+
+    function addPoint(lat, lng, size, color, subgeo) {
+      var phi = (90 - lat) * Math.PI / 180;
+      var theta = (180 - lng) * Math.PI / 180;
+
+      point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
+      point.position.y = 200 * Math.cos(phi);
+      point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
+
+      point.lookAt(mesh.position);
+
+      point.scale.z = -size;
+      point.updateMatrix();
+
+      var i;
+      for (i = 0; i < point.geometry.faces.length; i++) {
+        point.geometry.faces[i].color = color;
+      }
+      GeometryUtils.merge(subgeo, point);
     }
-    if (this._myGeometry !== undefined) {
-      this.myPoints = new THREE.Mesh(this._myGeometry, this.nonActiveMaterial);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      render();
     }
 
-    scene.addObject(this.everyoneElsePoints);
-    scene.addObject(this.friendPoints);
-    scene.addObject(this.myPoints);
-  }
+    function render() {
+      zoom(curZoomSpeed);
 
-  function addPoint(lat, lng, size, color, subgeo) {
-    var phi = (90 - lat) * Math.PI / 180;
-    var theta = (180 - lng) * Math.PI / 180;
+      rotation.x += (target.x - rotation.x) * 0.1;
+      rotation.y += (target.y - rotation.y) * 0.1;
+      distance += (distanceTarget - distance) * 0.3;
 
-    point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
-    point.position.y = 200 * Math.cos(phi);
-    point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
+      camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
+      camera.position.y = distance * Math.sin(rotation.y);
+      camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
 
-    point.lookAt(mesh.position);
+      vector.copy(camera.position);
 
-    point.scale.z = -size;
-    point.updateMatrix();
-
-    var i;
-    for (i = 0; i < point.geometry.faces.length; i++) {
-      point.geometry.faces[i].color = color;
+      renderer.clear();
+      renderer.render(scene, camera);
+      renderer.render(sceneAtmosphere, camera);
     }
-    GeometryUtils.merge(subgeo, point);
-  }
 
-  function animate() {
-    requestAnimationFrame(animate);
-    render();
-  }
+    init();
+    this.animate = animate;
 
-  function render() {
-    zoom(curZoomSpeed);
+    this.addData = addData;
+    this.createPoints = createPoints;
+    this.updatePoints = updatePoints;
+    this.renderer = renderer;
+    this.scene = scene;
+    this.userColor = userColor;
+    this.friendColor = friendColor;
+    this.everyoneColor = everyoneColor;
 
-    rotation.x += (target.x - rotation.x) * 0.1;
-    rotation.y += (target.y - rotation.y) * 0.1;
-    distance += (distanceTarget - distance) * 0.3;
+    //*********MOUSE HANDLER STUFF******************
 
-    camera.position.x = distance * Math.sin(rotation.x) * Math.cos(rotation.y);
-    camera.position.y = distance * Math.sin(rotation.y);
-    camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
+    function onMouseDown(event) {
+      event.preventDefault();
 
-    vector.copy(camera.position);
+      container.addEventListener('mousemove', onMouseMove, false);
+      container.addEventListener('mouseup', onMouseUp, false);
+      container.addEventListener('mouseout', onMouseOut, false);
 
-    renderer.clear();
-    renderer.render(scene, camera);
-    renderer.render(sceneAtmosphere, camera);
-  }
+      mouseOnDown.x = -event.clientX;
+      mouseOnDown.y = event.clientY;
 
-  init();
-  this.animate = animate;
+      targetOnDown.x = target.x;
+      targetOnDown.y = target.y;
 
-  this.addData = addData;
-  this.createPoints = createPoints;
-  this.updatePoints = updatePoints;
-  this.renderer = renderer;
-  this.scene = scene;
-
-  //*********MOUSE HANDLER STUFF******************
-
-  function onMouseDown(event) {
-    event.preventDefault();
-
-    container.addEventListener('mousemove', onMouseMove, false);
-    container.addEventListener('mouseup', onMouseUp, false);
-    container.addEventListener('mouseout', onMouseOut, false);
-
-    mouseOnDown.x = -event.clientX;
-    mouseOnDown.y = event.clientY;
-
-    targetOnDown.x = target.x;
-    targetOnDown.y = target.y;
-
-    container.style.cursor = 'move';
-  }
-
-  function onMouseMove(event) {
-    mouse.x = -event.clientX;
-    mouse.y = event.clientY;
-
-    var zoomDamp = distance / 1000;
-
-    target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
-    target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
-
-    target.y = target.y > PI_HALF ? PI_HALF : target.y;
-    target.y = target.y < -PI_HALF ? -PI_HALF : target.y;
-  }
-
-  function onMouseUp(event) {
-    container.removeEventListener('mousemove', onMouseMove, false);
-    container.removeEventListener('mouseup', onMouseUp, false);
-    container.removeEventListener('mouseout', onMouseOut, false);
-    container.style.cursor = 'auto';
-  }
-
-  function onMouseOut(event) {
-    container.removeEventListener('mousemove', onMouseMove, false);
-    container.removeEventListener('mouseup', onMouseUp, false);
-    container.removeEventListener('mouseout', onMouseOut, false);
-  }
-
-  function onMouseWheel(event) {
-    event.preventDefault();
-    if (overRenderer) {
-      zoom(event.wheelDeltaY * 0.3);
+      container.style.cursor = 'move';
     }
-    return false;
-  }
 
-  function onDocumentKeyDown(event) {
-    switch (event.keyCode) {
-      case 38:
-        zoom(100);
-        event.preventDefault();
-        break;
-      case 40:
-        zoom(-100);
-        event.preventDefault();
-        break;
+    function onMouseMove(event) {
+      mouse.x = -event.clientX;
+      mouse.y = event.clientY;
+
+      var zoomDamp = distance / 1000;
+
+      target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
+      target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
+
+      target.y = target.y > PI_HALF ? PI_HALF : target.y;
+      target.y = target.y < -PI_HALF ? -PI_HALF : target.y;
     }
-  }
 
-  function onWindowResize(event) {
-    console.log('resize');
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
+    function onMouseUp(event) {
+      container.removeEventListener('mousemove', onMouseMove, false);
+      container.removeEventListener('mouseup', onMouseUp, false);
+      container.removeEventListener('mouseout', onMouseOut, false);
+      container.style.cursor = 'auto';
+    }
 
-  function zoom(delta) {
-    distanceTarget -= delta;
-    distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
-    distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
-  }
+    function onMouseOut(event) {
+      container.removeEventListener('mousemove', onMouseMove, false);
+      container.removeEventListener('mouseup', onMouseUp, false);
+      container.removeEventListener('mouseout', onMouseOut, false);
+    }
 
-  return this;
+    function onMouseWheel(event) {
+      event.preventDefault();
+      if (overRenderer) {
+        zoom(event.wheelDeltaY * 0.3);
+      }
+      return false;
+    }
 
-};
+    function onDocumentKeyDown(event) {
+      switch (event.keyCode) {
+        case 38:
+          zoom(100);
+          event.preventDefault();
+          break;
+        case 40:
+          zoom(-100);
+          event.preventDefault();
+          break;
+      }
+    }
+
+    function onWindowResize(event) {
+      console.log('resize');
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function zoom(delta) {
+      distanceTarget -= delta;
+      distanceTarget = distanceTarget > 1000 ? 1000 : distanceTarget;
+      distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
+    }
+
+    return this;
+
+  };
