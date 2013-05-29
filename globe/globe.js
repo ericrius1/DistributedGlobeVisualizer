@@ -13,11 +13,15 @@
 
 var DAT = DAT || {};
 
-DAT.Globe = function(container, colorFn) {
+DAT.Globe = function(container) {
 
-  colorFn = colorFn || function(x) {
+  colorFn =  function(relationship) {
     var c = new THREE.Color();
-    c.setHSV( ( 0.6 - ( x * 0.5 ) ), 1.0, 1.0 );
+    switch(relationship){
+      case 'me':
+        c.setRGB(1.0, 0, 1.0);
+        break;
+    }
     return c;
   };
 
@@ -182,10 +186,9 @@ DAT.Globe = function(container, colorFn) {
     console.log(opts.format);
     if (opts.format === 'magnitude') {
       step = 3;
-      colorFnWrapper = function(data, i) { return colorFn(.1); }
-    } else if (opts.format === 'legend') {
-      step = 4;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+3]); }
+      debugger;
+      colorFnWrapper = function(data, relationship) { 
+        return colorFn(relationship); }
     } else {
       throw('error: format not supported: '+opts.format);
     }
@@ -212,7 +215,7 @@ DAT.Globe = function(container, colorFn) {
     for (i = 0; i < data.length; i += step) {
       lat = data[i];
       lng = data[i + 1];
-      color = colorFnWrapper(data,i);
+      color = colorFnWrapper(data,'me');
       size = data[i + 2];
       size = size*200;
       addPoint(lat, lng, size, color, subgeo);
