@@ -73,7 +73,7 @@ DAT.Globe = function(container) {
   var everyoneColor = 0x00ff00;
   var highlightColor = 0xFFFFFF;
 
-  var frameCounter = 0;
+  var frameCounter = 1;
 
   var imgDir = '/globe/';
 
@@ -293,8 +293,6 @@ DAT.Globe = function(container) {
 
       point.scale.z = -size;
       point.updateMatrix();
-
-      var i;
      
       GeometryUtils.merge(subgeo, point);
     }
@@ -304,6 +302,8 @@ DAT.Globe = function(container) {
       render();
       if(frameCounter++ % 60 === 0){
         updateJobEmitters();
+        frameCounter= 1;
+        
       }
     }
 
