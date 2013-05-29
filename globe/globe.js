@@ -234,7 +234,7 @@ DAT.Globe = function(container) {
       i === 0 ? relationship = 'me' : i < data.length / 4 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
-      size = data[i + 2];
+      size = .05;
       size = size * 200;
       switch (relationship) {
         case 'friend':

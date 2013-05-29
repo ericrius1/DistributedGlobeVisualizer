@@ -10,8 +10,6 @@
 
   <div id="container"></div>
 
- 
-
   <div id="currentInfo">
     <span id="whoEveryone" class="who">Everyone</span>
     <span id="whoFriends" class="who">Friends </span>
@@ -56,8 +54,6 @@
           view.setAttribute('class', 'who active');
           globe.updatePoints(view.getAttribute('id'));
         };
-
-
       };
 
       //Adds event listeners to all the who's
@@ -65,10 +61,7 @@
         var view = document.getElementById('who'+who[i]);
         view.addEventListener('mouseover', setwho(globe, i), false);
       }
-
       var xhr;
-
-
       xhr = new XMLHttpRequest();
       xhr.open('GET', '/globe/supercomputer.json', true);
       xhr.onreadystatechange = function(e) {
