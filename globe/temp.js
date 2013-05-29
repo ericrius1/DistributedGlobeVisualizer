@@ -1,0 +1,7 @@
+var globeRadius=1000;var vec3_origin=new THREE.Vector3(0,0,0);function makeConnectionLineGeometry(exporter,importer,value,type){if(exporter.countryName==undefined||importer.countryName==undefined)
+return undefined;var distanceBetweenCountryCenter=exporter.center.clone().subSelf(importer.center).length();var anchorHeight=globeRadius+distanceBetweenCountryCenter*0.7;var start=exporter.center;var end=importer.center;var mid=start.clone().lerpSelf(end,0.5);var midLength=mid.length()
+mid.normalize();mid.multiplyScalar(midLength+distanceBetweenCountryCenter*0.7);var normal=(new THREE.Vector3()).sub(start,end);normal.normalize();var distanceHalf=distanceBetweenCountryCenter*0.5;var startAnchor=start;var midStartAnchor=mid.clone().addSelf(normal.clone().multiplyScalar(distanceHalf));var midEndAnchor=mid.clone().addSelf(normal.clone().multiplyScalar(-distanceHalf));var endAnchor=end;var splineCurveA=new THREE.CubicBezierCurve3(start,startAnchor,midStartAnchor,mid);var splineCurveB=new THREE.CubicBezierCurve3(mid,midEndAnchor,endAnchor,end);var vertexCountDesired=Math.floor(distanceBetweenCountryCenter*0.02+6)*2;var points=splineCurveA.getPoints(vertexCountDesired);points=points.splice(0,points.length-1);points=points.concat(splineCurveB.getPoints(vertexCountDesired));points.push(vec3_origin);var val=value*0.0003;var size=(10+Math.sqrt(val));size=constrain(size,0.1,60);var curveGeometry=THREE.Curve.Utils.createLineGeometry(points);curveGeometry.size=size;return curveGeometry;}
+function constrain(v,min,max){if(v<min)
+v=min;else
+if(v>max)
+v=max;return v;}

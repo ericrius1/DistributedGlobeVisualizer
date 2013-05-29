@@ -30,7 +30,7 @@ DAT.Globe = function(container) {
     return c;
   };
 
-  var Shaders = {
+  Shaders = {
     'earth': {
       uniforms: {
         'texture': {
@@ -226,9 +226,8 @@ DAT.Globe = function(container) {
     var subgeo = new THREE.Geometry();
     for (i = 0; i < data.length; i += step) {
       //hack to stimulate friends or everyone
-      var relationship= '';
-      debugger;
-      i === 0 ? relationship = 'me' : i < data.length/8 ? relationship = 'friend' : relationship = 'everyone'
+      var relationship = '';
+      i === 0 ? relationship = 'me' : i < data.length / 8 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
       color = colorFnWrapper(data, relationship);
@@ -242,11 +241,17 @@ DAT.Globe = function(container) {
 
   function createPoints() {
     if (this._baseGeometry !== undefined) {
-      this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: THREE.FaceColors,
-        morphTargets: false
-      }));
+      shader = Shaders['atmosphere'];
+      uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+
+      material = new THREE.MeshShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader
+      });
+
+
+      this.points = new THREE.Mesh(this._baseGeometry, material);
       scene.addObject(this.points);
     }
   }
