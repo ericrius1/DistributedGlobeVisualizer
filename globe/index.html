@@ -96,9 +96,9 @@
  
 
   <div id="currentInfo">
-    <span id="whoMe" class="who">Me</span>
-    <span id="whoFriends" class="who">Friends </span>
     <span id="whoEveryone" class="who">Everyone</span>
+    <span id="whoFriends" class="who">Friends </span>
+    <span id="whoMe" class="who">Just Me</span>
   </div>
 
   <div id="title">
@@ -145,7 +145,7 @@
       //Adds event listeners to all the who's
       for(var i = 0; i<who.length; i++) {
         var view = document.getElementById('who'+who[i]);
-        view.addEventListener('mouseover', setwho(globe), false);
+        view.addEventListener('mouseover', setwho(globe, i), false);
       }
 
       var xhr;
