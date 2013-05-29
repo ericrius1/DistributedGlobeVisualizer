@@ -60,7 +60,7 @@ DAT.Globe = function(container, colorFn) {
         'varying vec3 vNormal;',
         'void main() {',
           'float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );',
-          'gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;',
+          'gl_FragColor = vec4( 0.33, 0.11, 0.44, 1.0 ) * intensity;',
         '}'
       ].join('\n')
     }
@@ -68,6 +68,7 @@ DAT.Globe = function(container, colorFn) {
 
   var camera, scene, sceneAtmosphere, renderer, w, h;
   var vector, mesh, atmosphere, point;
+  var relationship;
 
   var overRenderer;
 
@@ -103,6 +104,7 @@ DAT.Globe = function(container, colorFn) {
     scene = new THREE.Scene();
     sceneAtmosphere = new THREE.Scene();
 
+//******EARTH SETUP**********
     var geometry = new THREE.Sphere(200, 40, 30);
 
     shader = Shaders['earth'];
@@ -141,14 +143,14 @@ DAT.Globe = function(container, colorFn) {
     mesh.updateMatrix();
     sceneAtmosphere.addObject(mesh);
 
+
+//********POINT SETUP*********************
     geometry = new THREE.Cube(0.75, 0.75, 1, 1, 1, 1, null, false, { px: true,
           nx: true, py: true, ny: true, pz: false, nz: true});
 
     for (var i = 0; i < geometry.vertices.length; i++) {
-
       var vertex = geometry.vertices[i];
       vertex.position.z += 0.5;
-
     }
 
     point = new THREE.Mesh(geometry);
@@ -170,6 +172,7 @@ DAT.Globe = function(container, colorFn) {
     }, false);
   }
 
+  //Where we add to globe based on json data which contains lat and long
   addData = function(data, opts) {
     var lat, lng, size, color, i, step, colorFnWrapper;
 
@@ -193,7 +196,6 @@ DAT.Globe = function(container, colorFn) {
         for (i = 0; i < data.length; i += step) {
           lat = data[i];
           lng = data[i + 1];
-//        size = data[i + 2];
           color = colorFnWrapper(data,i);
           size = 0;
           addPoint(lat, lng, size, color, this._baseGeometry);
@@ -207,7 +209,6 @@ DAT.Globe = function(container, colorFn) {
       opts.name = opts.name || 'morphTarget'+this._morphTargetId;
     }
     var subgeo = new THREE.Geometry();
-    debugger;
     for (i = 0; i < data.length; i += step) {
       lat = data[i];
       lng = data[i + 1];
@@ -221,7 +222,6 @@ DAT.Globe = function(container, colorFn) {
     } else {
       this._baseGeometry = subgeo;
     }
-
   };
 
   function createPoints() {
@@ -267,16 +267,11 @@ DAT.Globe = function(container, colorFn) {
 
     var i;
     for (i = 0; i < point.geometry.faces.length; i++) {
-
       point.geometry.faces[i].color = color;
-
     }
-
     GeometryUtils.merge(subgeo, point);
   }
-
   
-
   function animate() {
     requestAnimationFrame(animate);
     render();
@@ -302,7 +297,6 @@ DAT.Globe = function(container, colorFn) {
 
   init();
   this.animate = animate;
-
 
   this.__defineGetter__('time', function() {
     return this._time || 0;
@@ -418,4 +412,3 @@ DAT.Globe = function(container, colorFn) {
   return this;
 
 };
-
