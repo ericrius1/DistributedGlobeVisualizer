@@ -164,11 +164,9 @@ DAT.Globe = function(container) {
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
     material = new THREE.MeshShaderMaterial({
-
       uniforms: uniforms,
       vertexShader: shader.vertexShader,
       fragmentShader: shader.fragmentShader
-
     });
 
     mesh = new THREE.Mesh(geometry, material);
@@ -177,7 +175,6 @@ DAT.Globe = function(container) {
     mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
     sceneAtmosphere.addObject(mesh);
-
 
     //********POINT SETUP*********************
     geometry = new THREE.Cube(0.75, 0.75, 1, 1, 1, 1, null, false, {
