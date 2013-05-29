@@ -18,9 +18,14 @@ DAT.Globe = function(container) {
   colorFn = function(relationship) {
     var c = new THREE.Color();
     switch (relationship) {
-      case 'me':
-        c.setRGB(1.0, 0, 1.0);
+      case 'friend':
+        c.setRGB(1.0, 0.1, 0.0);
         break;
+      case 'everyone':
+        c.setRGB(0.99, 0.7, 0.0);
+        break;
+      case 'me':
+        c.setRGB(1.0, 0.0, 1.0);
     }
     return c;
   };
@@ -76,7 +81,6 @@ DAT.Globe = function(container) {
 
   var camera, scene, sceneAtmosphere, renderer, w, h;
   var vector, mesh, atmosphere, point;
-  var relationship;
 
   var overRenderer;
 
@@ -221,9 +225,13 @@ DAT.Globe = function(container) {
 
     var subgeo = new THREE.Geometry();
     for (i = 0; i < data.length; i += step) {
+      //hack to stimulate friends or everyone
+      var relationship= '';
+      debugger;
+      i === 0 ? relationship = 'me' : i < data.length/8 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
-      color = colorFnWrapper(data, 'me');
+      color = colorFnWrapper(data, relationship);
       size = data[i + 2];
       size = size * 200;
       addPoint(lat, lng, size, color, subgeo);
