@@ -162,10 +162,10 @@
           if (xhr.status === 200) {
             var data = JSON.parse(xhr.responseText);
             window.data = data;
-            globe.addData(data[1], {format: 'magnitude', name: data[0], animated: true});
+            globe.addData(data[1], {format: 'magnitude', name: data[0]});
             
             globe.createPoints();
-            setwho(globe,0)();
+            setwho(globe,2)();
             globe.animate();
           }
         }

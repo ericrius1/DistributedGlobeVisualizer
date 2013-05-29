@@ -246,7 +246,7 @@ DAT.Globe = function(container) {
     for (i = 0; i < data.length; i += step) {
       //hack to stimulate friends or everyone
       var relationship = '';
-      i === 0 ? relationship = 'me' : i < data.length / 8 ? relationship = 'friend' : relationship = 'everyone'
+      i === 0 ? relationship = 'me' : i < data.length / 4 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
       color = colorFnWrapper(data, relationship);
@@ -271,41 +271,45 @@ DAT.Globe = function(container) {
   };
 
   function updatePoints(view) {
+    shader = Shaders['contributor'];
+    uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+
+    var material = new THREE.MeshShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
+    });
     if (view === 'whoMe') {
-      shader = Shaders['contributor'];
-      uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
-      material = new THREE.MeshShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: shader.vertexShader,
-        fragmentShader: shader.fragmentShader
-      });
-
       this.myPoints.materials[0] = material;
+      material.needsUpdate = true;
+      this.friendPoints.materials[0] = this.nonActiveMaterial;
+    }
+    if (view === 'whoFriends') {
+      this.friendPoints.materials[0] = material;
+      material.needsUpdate = true;
+    }
+    if (view === 'whoEveryone') {
+      this.everyoneElsePoints.materials[0] = material;
+      this.friendPoints.materials[0] = material;
+      this.myPoints.materials[0] = material;
+      material.needsUpdate = true;
     }
   };
 
   function createPoints() {
+    this.nonActiveMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      vertexColors: THREE.FaceColors,
+      morphTargets: false
+    });
     if (this._everyoneElseGeometry !== undefined) {
-      this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: THREE.FaceColors,
-        morphTargets: false
-      }));
+      this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, this.nonActiveMaterial );
     }
     if (this._friendGeometry !== undefined) {
-      this.friendPoints = new THREE.Mesh(this._friendGeometry, new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: THREE.FaceColors,
-        morphTargets: false
-      }));
+      this.friendPoints = new THREE.Mesh(this._friendGeometry, this.nonActiveMaterial);
     }
     if (this._myGeometry !== undefined) {
-      this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        vertexColors: THREE.FaceColors,
-        morphTargets: false
-      }));
+      this.myPoints = new THREE.Mesh(this._myGeometry, this.nonActiveMaterial);
     }
 
     scene.addObject(this.everyoneElsePoints);
