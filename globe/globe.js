@@ -15,9 +15,9 @@ var DAT = DAT || {};
 
 DAT.Globe = function(container) {
 
-  colorFn =  function(relationship) {
+  colorFn = function(relationship) {
     var c = new THREE.Color();
-    switch(relationship){
+    switch (relationship) {
       case 'me':
         c.setRGB(1.0, 0, 1.0);
         break;
@@ -26,46 +26,50 @@ DAT.Globe = function(container) {
   };
 
   var Shaders = {
-    'earth' : {
+    'earth': {
       uniforms: {
-        'texture': { type: 't', value: 0, texture: null }
+        'texture': {
+          type: 't',
+          value: 0,
+          texture: null
+        }
       },
       vertexShader: [
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
+          'varying vec3 vNormal;',
+          'varying vec2 vUv;',
+          'void main() {',
           'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
           'vNormal = normalize( normalMatrix * normal );',
           'vUv = uv;',
-        '}'
+          '}'
       ].join('\n'),
       fragmentShader: [
-        'uniform sampler2D texture;',
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
+          'uniform sampler2D texture;',
+          'varying vec3 vNormal;',
+          'varying vec2 vUv;',
+          'void main() {',
           'vec3 diffuse = texture2D( texture, vUv ).xyz;',
           'float intensity = 1.05 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) );',
           'vec3 atmosphere = vec3( 1.0, 1.0, 1.0 ) * pow( intensity, 3.0 );',
           'gl_FragColor = vec4( diffuse + atmosphere, 1.0 );',
-        '}'
+          '}'
       ].join('\n')
     },
-    'atmosphere' : {
+    'atmosphere': {
       uniforms: {},
       vertexShader: [
-        'varying vec3 vNormal;',
-        'void main() {',
+          'varying vec3 vNormal;',
+          'void main() {',
           'vNormal = normalize( normalMatrix * normal );',
           'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-        '}'
+          '}'
       ].join('\n'),
       fragmentShader: [
-        'varying vec3 vNormal;',
-        'void main() {',
+          'varying vec3 vNormal;',
+          'void main() {',
           'float intensity = pow( 0.8 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 12.0 );',
           'gl_FragColor = vec4( 0.33, 0.11, 0.44, 1.0 ) * intensity;',
-        '}'
+          '}'
       ].join('\n')
     }
   };
@@ -81,12 +85,28 @@ DAT.Globe = function(container) {
   var curZoomSpeed = 0;
   var zoomSpeed = 50;
 
-  var mouse = { x: 0, y: 0 }, mouseOnDown = { x: 0, y: 0 };
-  var rotation = { x: 0, y: 0 },
-      target = { x: Math.PI*3/2, y: Math.PI / 6.0 },
-      targetOnDown = { x: 0, y: 0 };
+  var mouse = {
+    x: 0,
+    y: 0
+  }, mouseOnDown = {
+      x: 0,
+      y: 0
+    };
+  var rotation = {
+    x: 0,
+    y: 0
+  },
+    target = {
+      x: Math.PI * 3 / 2,
+      y: Math.PI / 6.0
+    },
+    targetOnDown = {
+      x: 0,
+      y: 0
+    };
 
-  var distance = 100000, distanceTarget = 100000;
+  var distance = 100000,
+    distanceTarget = 100000;
   var padding = 40;
   var PI_HALF = Math.PI / 2;
 
@@ -100,7 +120,7 @@ DAT.Globe = function(container) {
     h = container.offsetHeight || window.innerHeight;
 
     camera = new THREE.Camera(
-        30, w / h, 1, 10000);
+      30, w / h, 1, 10000);
     camera.position.z = distance;
 
     vector = new THREE.Vector3();
@@ -108,22 +128,22 @@ DAT.Globe = function(container) {
     scene = new THREE.Scene();
     sceneAtmosphere = new THREE.Scene();
 
-//******EARTH SETUP**********
+    //******EARTH SETUP**********
     var geometry = new THREE.Sphere(200, 40, 30);
 
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
-    uniforms['texture'].texture = THREE.ImageUtils.loadTexture(imgDir+'world' +
-        '.jpg');
+    uniforms['texture'].texture = THREE.ImageUtils.loadTexture(imgDir + 'world' +
+      '.jpg');
 
     material = new THREE.MeshShaderMaterial({
 
-          uniforms: uniforms,
-          vertexShader: shader.vertexShader,
-          fragmentShader: shader.fragmentShader
+      uniforms: uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
 
-        });
+    });
 
     mesh = new THREE.Mesh(geometry, material);
     mesh.matrixAutoUpdate = false;
@@ -134,11 +154,11 @@ DAT.Globe = function(container) {
 
     material = new THREE.MeshShaderMaterial({
 
-          uniforms: uniforms,
-          vertexShader: shader.vertexShader,
-          fragmentShader: shader.fragmentShader
+      uniforms: uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
 
-        });
+    });
 
     mesh = new THREE.Mesh(geometry, material);
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 1.1;
@@ -148,9 +168,15 @@ DAT.Globe = function(container) {
     sceneAtmosphere.addObject(mesh);
 
 
-//********POINT SETUP*********************
-    geometry = new THREE.Cube(0.75, 0.75, 1, 1, 1, 1, null, false, { px: true,
-          nx: true, py: true, ny: true, pz: false, nz: true});
+    //********POINT SETUP*********************
+    geometry = new THREE.Cube(0.75, 0.75, 1, 1, 1, 1, null, false, {
+      px: true,
+      nx: true,
+      py: true,
+      ny: true,
+      pz: false,
+      nz: true
+    });
 
     for (var i = 0; i < geometry.vertices.length; i++) {
       var vertex = geometry.vertices[i];
@@ -158,7 +184,9 @@ DAT.Globe = function(container) {
     }
 
     point = new THREE.Mesh(geometry);
-    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
     renderer.autoClear = false;
     renderer.setClearColorHex(0x000000, 0.0);
     renderer.setSize(w, h);
@@ -180,77 +208,37 @@ DAT.Globe = function(container) {
   addData = function(data, opts) {
     var lat, lng, size, color, i, step, colorFnWrapper;
 
-    opts.animated = opts.animated || false;
-    this.is_animated = opts.animated;
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
     console.log(opts.format);
     if (opts.format === 'magnitude') {
       step = 3;
-      debugger;
-      colorFnWrapper = function(data, relationship) { 
-        return colorFn(relationship); }
+      colorFnWrapper = function(data, relationship) {
+        return colorFn(relationship);
+      }
     } else {
-      throw('error: format not supported: '+opts.format);
+      throw ('error: format not supported: ' + opts.format);
     }
 
-    if (opts.animated) {
-      if (this._baseGeometry === undefined) {
-        this._baseGeometry = new THREE.Geometry();
-        for (i = 0; i < data.length; i += step) {
-          lat = data[i];
-          lng = data[i + 1];
-          color = colorFnWrapper(data,i);
-          size = 0;
-          addPoint(lat, lng, size, color, this._baseGeometry);
-        }
-      }
-      if(this._morphTargetId === undefined) {
-        this._morphTargetId = 0;
-      } else {
-        this._morphTargetId += 1;
-      }
-      opts.name = opts.name || 'morphTarget'+this._morphTargetId;
-    }
     var subgeo = new THREE.Geometry();
     for (i = 0; i < data.length; i += step) {
       lat = data[i];
       lng = data[i + 1];
-      color = colorFnWrapper(data,'me');
+      color = colorFnWrapper(data, 'me');
       size = data[i + 2];
-      size = size*200;
+      size = size * 200;
       addPoint(lat, lng, size, color, subgeo);
     }
-    if (opts.animated) {
-      this._baseGeometry.morphTargets.push({'name': opts.name, vertices: subgeo.vertices});
-    } else {
-      this._baseGeometry = subgeo;
-    }
+    this._baseGeometry = subgeo;
+
   };
 
   function createPoints() {
     if (this._baseGeometry !== undefined) {
-      if (this.is_animated === false) {
-        this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-              color: 0xffffff,
-              vertexColors: THREE.FaceColors,
-              morphTargets: false
-            }));
-      } else {
-        if (this._baseGeometry.morphTargets.length < 8) {
-          console.log('t l',this._baseGeometry.morphTargets.length);
-          var padding = 8-this._baseGeometry.morphTargets.length;
-          console.log('padding', padding);
-          for(var i=0; i<=padding; i++) {
-            console.log('padding',i);
-            this._baseGeometry.morphTargets.push({'name': 'morphPadding'+i, vertices: this._baseGeometry.vertices});
-          }
-        }
-        this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-              color: 0xffffff,
-              vertexColors: THREE.FaceColors,
-              morphTargets: true
-            }));
-      }
+      this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        vertexColors: THREE.FaceColors,
+        morphTargets: false
+      }));
       scene.addObject(this.points);
     }
   }
@@ -274,7 +262,7 @@ DAT.Globe = function(container) {
     }
     GeometryUtils.merge(subgeo, point);
   }
-  
+
   function animate() {
     requestAnimationFrame(animate);
     render();
@@ -301,34 +289,6 @@ DAT.Globe = function(container) {
   init();
   this.animate = animate;
 
-  this.__defineGetter__('time', function() {
-    return this._time || 0;
-  });
-
-  this.__defineSetter__('time', function(t) {
-    var validMorphs = [];
-    var morphDict = this.points.morphTargetDictionary;
-    for(var k in morphDict) {
-      if(k.indexOf('morphPadding') < 0) {
-        validMorphs.push(morphDict[k]);
-      }
-    }
-    validMorphs.sort();
-    var l = validMorphs.length-1;
-    var scaledt = t*l+1;
-    var index = Math.floor(scaledt);
-    for (i=0;i<validMorphs.length;i++) {
-      this.points.morphTargetInfluences[validMorphs[i]] = 0;
-    }
-    var lastIndex = index - 1;
-    var leftover = scaledt - index;
-    if (lastIndex >= 0) {
-      this.points.morphTargetInfluences[lastIndex] = 1 - leftover;
-    }
-    this.points.morphTargetInfluences[index] = leftover;
-    this._time = t;
-  });
-
   this.addData = addData;
   this.createPoints = createPoints;
   this.renderer = renderer;
@@ -343,7 +303,7 @@ DAT.Globe = function(container) {
     container.addEventListener('mouseup', onMouseUp, false);
     container.addEventListener('mouseout', onMouseOut, false);
 
-    mouseOnDown.x = - event.clientX;
+    mouseOnDown.x = -event.clientX;
     mouseOnDown.y = event.clientY;
 
     targetOnDown.x = target.x;
@@ -353,16 +313,16 @@ DAT.Globe = function(container) {
   }
 
   function onMouseMove(event) {
-    mouse.x = - event.clientX;
+    mouse.x = -event.clientX;
     mouse.y = event.clientY;
 
-    var zoomDamp = distance/1000;
+    var zoomDamp = distance / 1000;
 
     target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
     target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
 
     target.y = target.y > PI_HALF ? PI_HALF : target.y;
-    target.y = target.y < - PI_HALF ? - PI_HALF : target.y;
+    target.y = target.y < -PI_HALF ? -PI_HALF : target.y;
   }
 
   function onMouseUp(event) {
@@ -399,11 +359,11 @@ DAT.Globe = function(container) {
     }
   }
 
-  function onWindowResize( event ) {
+  function onWindowResize(event) {
     console.log('resize');
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
   function zoom(delta) {
