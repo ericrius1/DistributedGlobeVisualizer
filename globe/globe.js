@@ -100,9 +100,10 @@ DAT.Globe = function(container) {
   var vector, mesh, atmosphere, point;
 
   var overRenderer;
-  var userColor = 0xff00ff;
+  var userColor = 0xff0000;
   var friendColor = 0x0000ff;
   var everyoneColor = 0x00ff00;
+  var highlightColor = 0xFF00FF;
 
   var imgDir = '/globe/';
 
@@ -274,10 +275,17 @@ DAT.Globe = function(container) {
   };
 
   function updatePoints(view) {
-    debugger;
-    var c = new THREE.Color();
-    c.setRGB(1, 0, 1);
-    this._friendGeometry.faces.color = c;
+    if(view === 'whoEveryone'){
+      this.everyoneElsePoints.materials[0].color.setHex(this.highlightColor);
+      this.friendElsePoints.materials[0].color.setHex(this.highlightColor);
+      this.myPoints.materials[0].color.setHex(this.highlightColor);
+
+    }
+
+    if(view === 'whoMe'){
+      this.everyoneElsePoints.materials[0].color.setHex(this.everyoneColor);
+      this.friendPoints.materials[0].color.setHex(this.friendColor);
+    }
 
   };
 
@@ -357,6 +365,7 @@ DAT.Globe = function(container) {
     this.userColor = userColor;
     this.friendColor = friendColor;
     this.everyoneColor = everyoneColor;
+    this.highlightColor = highlightColor;
 
     //*********MOUSE HANDLER STUFF******************
 
