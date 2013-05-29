@@ -139,7 +139,10 @@
             views[i].setAttribute('class','who');
           }
           view.setAttribute('class', 'who active');
+          globe.updatePoints(view.getAttribute('id'));
         };
+
+
       };
 
       //Adds event listeners to all the who's

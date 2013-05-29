@@ -77,7 +77,7 @@ DAT.Globe = function(container) {
           '}'
       ].join('\n')
     },
-    'contributor':{
+    'contributor': {
       uniforms: {},
       vertexShader: [
           'varying vec3 vNormal;',
@@ -96,7 +96,7 @@ DAT.Globe = function(container) {
     },
   };
 
-  var camera, scene, sceneAtmosphere, renderer, w, h;
+  var camera, scene, material, sceneAtmosphere, renderer, w, h;
   var vector, mesh, atmosphere, point;
 
   var overRenderer;
@@ -256,8 +256,8 @@ DAT.Globe = function(container) {
 
   };
 
-  function createPoints() {
-    if (this._baseGeometry !== undefined) {
+  function updatePoints(view) {
+    if (view === 'whoMe') {
       shader = Shaders['contributor'];
       uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
@@ -268,7 +268,20 @@ DAT.Globe = function(container) {
       });
 
 
-      this.points = new THREE.Mesh(this._baseGeometry, material);
+    }
+
+  }
+
+  function createPoints() {
+    if (this._baseGeometry !== undefined) {
+
+
+      this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        vertexColors: THREE.FaceColors,
+        morphTargets: false
+      }));
+
       scene.addObject(this.points);
     }
   }
@@ -321,6 +334,7 @@ DAT.Globe = function(container) {
 
   this.addData = addData;
   this.createPoints = createPoints;
+  this.updatePoints = updatePoints;
   this.renderer = renderer;
   this.scene = scene;
 
