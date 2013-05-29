@@ -89,7 +89,7 @@ DAT.Globe = function(container) {
   var myColor = 0xff0000;
   var friendColor = 0x0000ff;
   var everyoneColor = 0x00ff00;
-  var highlightColor = 0xFF00FF;
+  var highlightColor = 0xFFFFFF;
 
   var imgDir = '/globe/';
 
@@ -262,7 +262,6 @@ DAT.Globe = function(container) {
       this.everyoneElsePoints.materials[0].color.setHex(this.highlightColor);
       this.friendPoints.materials[0].color.setHex(this.highlightColor);
       this.myPoints.materials[0].color.setHex(this.highlightColor);
-
     }
 
     if(view === 'whoMe'){
