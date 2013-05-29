@@ -124,10 +124,11 @@
       console.log(globe);
       var i, tweens = [];
 
-      var setwho = function(globe, t) {
+      //Callback for when player switches relationship
+      var setwho = function(globe, whoIndex) {
         return function() {
-          new TWEEN.Tween(globe).to({time: t/who.length},500).easing(TWEEN.Easing.Cubic.EaseOut).start();
-          var view = document.getElementById('who'+who[t]);
+          new TWEEN.Tween(globe).to({time: 0},5000).easing(TWEEN.Easing.Cubic.EaseOut).start();
+          var view = document.getElementById('who'+who[whoIndex]);
           if (view.getAttribute('class') === 'who active') {
             return;
           }
@@ -144,7 +145,7 @@
       //Adds event listeners to all the who's
       for(var i = 0; i<who.length; i++) {
         var view = document.getElementById('who'+who[i]);
-        view.addEventListener('mouseover', setwho(globe,i), false);
+        view.addEventListener('mouseover', setwho(globe), false);
       }
 
       var xhr;

@@ -182,7 +182,7 @@ DAT.Globe = function(container, colorFn) {
     console.log(opts.format);
     if (opts.format === 'magnitude') {
       step = 3;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+2]); }
+      colorFnWrapper = function(data, i) { return colorFn(.1); }
     } else if (opts.format === 'legend') {
       step = 4;
       colorFnWrapper = function(data, i) { return colorFn(data[i+3]); }
