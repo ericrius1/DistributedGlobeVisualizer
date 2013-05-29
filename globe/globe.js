@@ -241,6 +241,8 @@ DAT.Globe = function(container) {
     }
 
     var everyoneElseGeometry = new THREE.Geometry();
+    var myGeometry = new THREE.Geometry();
+    var friendGeometry = new THREE.Geometry();
     for (i = 0; i < data.length; i += step) {
       //hack to stimulate friends or everyone
       var relationship = '';
@@ -250,9 +252,21 @@ DAT.Globe = function(container) {
       color = colorFnWrapper(data, relationship);
       size = data[i + 2];
       size = size * 200;
+      switch (relationship) {
+        case 'friend':
+          addPoint(lat, lng, size, color, friendGeometry);
+          break;
+        case 'everyone':
+          addPoint(lat, lng, size, color, everyoneElseGeometry);
+          break;
+        case 'me':
+          addPoint(lat, lng, size, color, myGeometry);
+      }
       addPoint(lat, lng, size, color, everyoneElseGeometry);
     }
-    this._baseGeometry = everyoneElseGeometry;
+    this._everyoneElseGeometry = everyoneElseGeometry;
+    this._friendGeometry = friendGeometry;
+    this._myGeometry = myGeometry;
 
   };
 
@@ -267,20 +281,36 @@ DAT.Globe = function(container) {
         fragmentShader: shader.fragmentShader
       });
 
-      this.points.materials[0] = material;
+      this.myPoints.materials[0] = material;
     }
-  }
+  };
 
   function createPoints() {
-    if (this._baseGeometry !== undefined) {
-      this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
+    if (this._everyoneElseGeometry !== undefined) {
+      this.everyoneElsePoints = new THREE.Mesh(this._everyoneElseGeometry, new THREE.MeshBasicMaterial({
         color: 0xffffff,
         vertexColors: THREE.FaceColors,
         morphTargets: false
       }));
-
-      scene.addObject(this.points);
     }
+    if (this._friendGeometry !== undefined) {
+      this.friendPoints = new THREE.Mesh(this._friendGeometry, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        vertexColors: THREE.FaceColors,
+        morphTargets: false
+      }));
+    }
+    if (this._myGeometry !== undefined) {
+      this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        vertexColors: THREE.FaceColors,
+        morphTargets: false
+      }));
+    }
+
+    scene.addObject(this.everyoneElsePoints);
+    scene.addObject(this.friendPoints);
+    scene.addObject(this.myPoints);
   }
 
   function addPoint(lat, lng, size, color, subgeo) {
