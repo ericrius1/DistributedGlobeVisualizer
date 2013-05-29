@@ -15,20 +15,6 @@ var DAT = DAT || {};
 
 DAT.Globe = function(container) {
 
-  colorFn = function(relationship) {
-    var c = new THREE.Color();
-    switch (relationship) {
-      case 'friend':
-        c.setRGB(1.0, 0.1, 0.0);
-        break;
-      case 'everyone':
-        c.setRGB(0.99, 0.7, 0.0);
-        break;
-      case 'me':
-        c.setRGB(1.0, 0.0, 1.0);
-    }
-    return c;
-  };
 
   Shaders = {
     'earth': {
@@ -231,15 +217,13 @@ DAT.Globe = function(container) {
 
   //Where we add to globe based on json data which contains lat and long
   addData = function(data, opts) {
-    var lat, lng, size, color, i, step, colorFnWrapper;
+    var lat, lng, size, color, i, step;
 
     opts.format = opts.format || 'magnitude'; // other option is 'legend'
     console.log(opts.format);
     if (opts.format === 'magnitude') {
       step = 3;
-      colorFnWrapper = function(data, relationship) {
-        return colorFn(relationship);
-      }
+     
     } else {
       throw ('error: format not supported: ' + opts.format);
     }
@@ -253,20 +237,19 @@ DAT.Globe = function(container) {
       i === 0 ? relationship = 'me' : i < data.length / 4 ? relationship = 'friend' : relationship = 'everyone'
       lat = data[i];
       lng = data[i + 1];
-      color = colorFnWrapper(data, relationship);
       size = data[i + 2];
       size = size * 200;
       switch (relationship) {
         case 'friend':
-          addPoint(lat, lng, size, color, friendGeometry);
+          addPoint(lat, lng, size, friendGeometry);
           break;
         case 'everyone':
-          addPoint(lat, lng, size, color, everyoneElseGeometry);
+          addPoint(lat, lng, size,  everyoneElseGeometry);
           break;
         case 'me':
-          addPoint(lat, lng, size, color, myGeometry);
+          addPoint(lat, lng, size,  myGeometry);
       }
-      addPoint(lat, lng, size, color, everyoneElseGeometry);
+      
     }
     this._everyoneElseGeometry = everyoneElseGeometry;
     this._friendGeometry = friendGeometry;
@@ -318,7 +301,7 @@ DAT.Globe = function(container) {
       scene.addObject(this.myPoints);
     }
 
-    function addPoint(lat, lng, size, color, subgeo) {
+    function addPoint(lat, lng, size, subgeo) {
       var phi = (90 - lat) * Math.PI / 180;
       var theta = (180 - lng) * Math.PI / 180;
 
@@ -332,9 +315,7 @@ DAT.Globe = function(container) {
       point.updateMatrix();
 
       var i;
-      for (i = 0; i < point.geometry.faces.length; i++) {
-        point.geometry.faces[i].color = color;
-      }
+     
       GeometryUtils.merge(subgeo, point);
     }
 
