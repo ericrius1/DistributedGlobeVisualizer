@@ -100,7 +100,7 @@ DAT.Globe = function(container) {
   var vector, mesh, atmosphere, point;
 
   var overRenderer;
-  var userColor = 0xff0000;
+  var myColor = 0xff0000;
   var friendColor = 0x0000ff;
   var everyoneColor = 0x00ff00;
   var highlightColor = 0xFF00FF;
@@ -277,14 +277,21 @@ DAT.Globe = function(container) {
   function updatePoints(view) {
     if(view === 'whoEveryone'){
       this.everyoneElsePoints.materials[0].color.setHex(this.highlightColor);
-      this.friendElsePoints.materials[0].color.setHex(this.highlightColor);
+      this.friendPoints.materials[0].color.setHex(this.highlightColor);
       this.myPoints.materials[0].color.setHex(this.highlightColor);
 
     }
 
     if(view === 'whoMe'){
+      this.myPoints.materials[0].color.setHex(this.highlightColor);
       this.everyoneElsePoints.materials[0].color.setHex(this.everyoneColor);
       this.friendPoints.materials[0].color.setHex(this.friendColor);
+    }
+
+    if(view === 'whoFriends'){
+      this.friendPoints.materials[0].color.setHex(this.highlightColor);
+      this.myPoints.materials[0].color.setHex(this.myColor);
+      this.everyoneElsePoints.materials[0].color.setHex(this.everyoneColor);
     }
 
   };
@@ -302,7 +309,7 @@ DAT.Globe = function(container) {
       }
       if (this._myGeometry !== undefined) {
         this.myPoints = new THREE.Mesh(this._myGeometry, new THREE.MeshBasicMaterial({
-          color: this.userColor
+          color: this.myColor
         }));
       }
 
@@ -362,7 +369,7 @@ DAT.Globe = function(container) {
     this.updatePoints = updatePoints;
     this.renderer = renderer;
     this.scene = scene;
-    this.userColor = userColor;
+    this.myColor = myColor;
     this.friendColor = friendColor;
     this.everyoneColor = everyoneColor;
     this.highlightColor = highlightColor;
