@@ -124,24 +124,26 @@
       console.log(globe);
       var i, tweens = [];
 
-      var settime = function(globe, t) {
+      var setwho = function(globe, t) {
         return function() {
           new TWEEN.Tween(globe).to({time: t/who.length},500).easing(TWEEN.Easing.Cubic.EaseOut).start();
-          var y = document.getElementById('who'+who[t]);
-          if (y.getAttribute('class') === 'who active') {
+          var view = document.getElementById('who'+who[t]);
+          if (view.getAttribute('class') === 'who active') {
             return;
           }
-          var yy = document.getElementsByClassName('who');
-          for(i=0; i<yy.length; i++) {
-            yy[i].setAttribute('class','who');
+          var views = document.getElementsByClassName('who');
+          //sets the view active to the one user just clicked on
+          //and the other views to inactive
+          for(i=0; i<views.length; i++) {
+            views[i].setAttribute('class','who');
           }
-          y.setAttribute('class', 'who active');
+          view.setAttribute('class', 'who active');
         };
       };
 
       for(var i = 0; i<who.length; i++) {
-        var y = document.getElementById('who'+who[i]);
-        y.addEventListener('mouseover', settime(globe,i), false);
+        var view = document.getElementById('who'+who[i]);
+        view.addEventListener('mouseover', setwho(globe,i), false);
       }
 
       var xhr;
@@ -159,7 +161,7 @@
               globe.addData(data[i][1], {format: 'magnitude', name: data[i][0], animated: true});
             }
             globe.createPoints();
-            settime(globe,0)();
+            setwho(globe,0)();
             globe.animate();
           }
         }
