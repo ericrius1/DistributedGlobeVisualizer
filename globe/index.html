@@ -110,7 +110,6 @@
   <script type="text/javascript" src="/globe/third-party/Three/ThreeExtras.js"></script>
   <script type="text/javascript" src="/globe/third-party/Three/RequestAnimationFrame.js"></script>
   <script type="text/javascript" src="/globe/third-party/Three/Detector.js"></script>
-  <script type="text/javascript" src="/globe/third-party/Tween.js"></script>
   <script type="text/javascript" src="/globe/globe.js"></script>
   <script type="text/javascript">
 
@@ -122,12 +121,12 @@
       var container = document.getElementById('container');
       var globe = new DAT.Globe(container);
       console.log(globe);
-      var i, tweens = [];
+      var i;
 
       //Callback for when player switches relationship
       var setwho = function(globe, whoIndex) {
         return function() {
-          new TWEEN.Tween(globe).to({time: 0},5000).easing(TWEEN.Easing.Cubic.EaseOut).start();
+          
           var view = document.getElementById('who'+who[whoIndex]);
           if (view.getAttribute('class') === 'who active') {
             return;
@@ -152,7 +151,6 @@
       }
 
       var xhr;
-      TWEEN.start();
 
 
       xhr = new XMLHttpRequest();
