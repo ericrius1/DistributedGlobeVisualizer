@@ -287,13 +287,15 @@ DAT.Globe = function(container) {
   function addPoint(lat, lng, size, subgeo, relationship) {
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
-
+    //pointd positions are 200 times sin and cosine of phi and theta
     point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
     point.position.y = 200 * Math.cos(phi);
     point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
 
+    //look at is center of sphere
     point.lookAt(mesh.position);
 
+    //now we reverse the scale to go upwards instead of pointing down to sphere
     point.scale.z = -size;
     point.updateMatrix();
 

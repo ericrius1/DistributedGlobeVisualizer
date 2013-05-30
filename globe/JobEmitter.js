@@ -1,8 +1,8 @@
 var DAT = DAT || {};
 
 DAT.JobEmitter = function(globe, position, relationship) {
-  debugger;
-
-
+  if(relationship !== "me")return;
+  var particleCount = 1800;
+  // var particles = new THREE.Geometry
 
 }
